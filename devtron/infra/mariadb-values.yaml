@@ -6,6 +6,7 @@
 fullnameOverride: g-bigcapital-mariadb
 image:
   repository: bitnamilegacy/mariadb
+  tag: '11.4'
 auth:
   rootPassword: REPLACE_WITH_GENERATED_PASSWORD
   database: bigcapital_system

@@ -5,6 +5,7 @@ fullnameOverride: g-bigcapital-redis
 architecture: standalone
 image:
   repository: bitnamilegacy/redis
+  tag: '7.4'
 auth:
   enabled: false
 master:
