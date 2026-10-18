@@ -7,6 +7,7 @@ import '@/style/App.scss';
 import { SplashScreen, DashboardThemeProvider } from '../components';
 import { queryConfig } from '../hooks/query/base';
 import AppIntlLoader from './AppIntlLoader';
+import { BASE_PATH } from '@/utils/basePath';
 import { EnsureUserEmailNotVerified } from './Guards/EnsureUserEmailNotVerified';
 import { EnsureAuthenticated } from '@/components/Guards/EnsureAuthenticated';
 import { GlobalErrors } from '@/containers/GlobalErrors/GlobalErrors';
@@ -78,7 +79,7 @@ function AppInsider({ history }: { history: History }) {
  */
 export default function App() {
   // Browser history.
-  const history = createBrowserHistory();
+  const history = createBrowserHistory({ basename: BASE_PATH });
 
   // Query client.
   const queryClient = new QueryClient(queryConfig);

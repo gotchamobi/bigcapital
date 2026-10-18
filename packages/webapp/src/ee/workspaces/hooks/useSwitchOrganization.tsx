@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { setOrganizationId } from '@/store/authentication/authentication.actions';
 import { setCookie } from '@/utils';
+import { BASE_PATH } from '@/utils/basePath';
 
 /**
  * Switches the active organization by updating the cookie,
@@ -21,7 +22,7 @@ export function useSwitchOrganization() {
       setCookie('organization_id', organizationId);
       dispatch(setOrganizationId(organizationId));
       queryClient.removeQueries();
-      window.location.assign('/');
+      window.location.assign(`${BASE_PATH}/`);
     },
     [dispatch, queryClient],
   );

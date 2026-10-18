@@ -1,0 +1,184 @@
+# g-bigcapital-backend — Devtron Deployment Chart 4.22.0
+# Public URL: https://gotchaplatform.com/g-bigcapital (ingress STRIPS the prefix: rewrite-target /$2)
+# Image: gotcha/Dockerfile — nginx :8000 serves the webapp and proxies /api, /socket,
+# /public to the Node server on :3000. Migrations run on every boot (idempotent).
+# Secrets come from the managed Secret mounted as env: DB_PASSWORD, APP_JWT_SECRET.
+# Backing services (Chart Store, see devtron/infra): g-bigcapital-mariadb, g-bigcapital-redis.
+
+replicaCount: 1
+MinReadySeconds: 30
+GracePeriod: 30
+ContainerPort:
+- name: app
+  port: 8000
+  servicePort: 80
+  protocol: TCP
+  envoyPort: 8799
+  idleTimeout: 1800s
+  supportStreaming: false
+  useHTTP2: false
+resources:
+  limits:
+    cpu: '1'
+    memory: 1536Mi
+  requests:
+    cpu: 100m
+    memory: 384Mi
+
+# /health is answered by nginx — liveness only. Boot runs migrations first, so
+# the liveness delay is generous.
+LivenessProbe:
+  Path: /health
+  port: 8000
+  initialDelaySeconds: 180
+  periodSeconds: 30
+  failureThreshold: 5
+  successThreshold: 1
+  timeoutSeconds: 5
+  scheme: ''
+  tcp: false
+  command: []
+  httpHeaders: []
+  grpc: {}
+ReadinessProbe:
+  Path: /health
+  port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
+  timeoutSeconds: 5
+  scheme: ''
+  tcp: false
+  command: []
+  httpHeaders: []
+  grpc: {}
+
+EnvVariables:
+- name: DB_HOST
+  value: g-bigcapital-mariadb
+- name: DB_USER
+  value: root
+- name: DB_CHARSET
+  value: utf8
+- name: SYSTEM_DB_NAME
+  value: bigcapital_system
+- name: TENANT_DB_NAME_PERFIX
+  value: bigcapital_tenant_
+- name: REDIS_HOST
+  value: g-bigcapital-redis-master
+- name: REDIS_PORT
+  value: '6379'
+- name: QUEUE_HOST
+  value: g-bigcapital-redis-master
+- name: QUEUE_PORT
+  value: '6379'
+- name: BASE_URL
+  value: https://gotchaplatform.com/g-bigcapital
+- name: SIGNUP_DISABLED
+  value: 'false'
+- name: SIGNUP_EMAIL_CONFIRMATION
+  value: 'false'
+- name: GOTENBERG_URL
+  value: http://127.0.0.1:3100
+- name: GOTENBERG_DOCS_URL
+  value: http://127.0.0.1:3000/public/
+- name: EXCHANGE_RATE_SERVICE
+  value: open-exchange-rate
+- name: CLICKHOUSE_ENABLED
+  value: 'false'
+- name: THROTTLE_GLOBAL_TTL
+  value: '60000'
+- name: THROTTLE_GLOBAL_LIMIT
+  value: '300'
+- name: THROTTLE_AUTH_TTL
+  value: '60000'
+- name: THROTTLE_AUTH_LIMIT
+  value: '30'
+
+# Gotenberg renders invoice/report PDFs. A sidecar rather than its own Service:
+# it is only ever called from this pod, and a Service costs a cluster IP.
+containers:
+- name: gotenberg
+  image: gotenberg/gotenberg:7
+  args: [gotenberg, --api-port=3100]
+  resources:
+    limits:
+      cpu: '1'
+      memory: 1Gi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  className: public
+  labels: {}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/auth-url: https://gotchaplatform.com/oauth2/auth
+    nginx.ingress.kubernetes.io/auth-signin: https://gotchaplatform.com/oauth2/start?rd=$escaped_request_uri
+    nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Groups,X-Auth-Request-Preferred-Username
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8k
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+  hosts:
+  - host: gotchaplatform.com
+    pathType: ImplementationSpecific
+    paths:
+    - /g-bigcapital(/|$)(.*)
+  tls:
+  - hosts:
+    - gotchaplatform.com
+    secretName: gotcha-tls
+
+service:
+  type: ClusterIP
+  loadBalancerSourceRanges: []
+  annotations:
+    gotcha/enable: 'true'
+    gotcha/deployment-name: g-bigcapital-gotcha
+    gotcha/display-name: Bigcapital (trial)
+    gotcha/description: Open-source accounting under evaluation for g!Finance
+    gotcha/icon: book-open
+    gotcha/category: operations
+    gotcha/path: /g-bigcapital
+    gotcha/port: '8000'
+    gotcha/version: 0.1.0
+    gotcha/access: admins
+    gotcha/status: alpha
+    gotcha/order: '21'
+
+rawYaml:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: g-bigcapital-gotcha-service
+    namespace: gotcha
+    labels:
+      gotcha/enable: 'true'
+    annotations:
+      gotcha/enable: 'true'
+      gotcha/deployment-name: g-bigcapital-gotcha
+      gotcha/display-name: Bigcapital (trial)
+      gotcha/description: Open-source accounting under evaluation for g!Finance
+      gotcha/icon: book-open
+      gotcha/category: operations
+      gotcha/path: /g-bigcapital
+      gotcha/port: '8000'
+      gotcha/version: 0.1.0
+      gotcha/access: admins
+      gotcha/status: alpha
+      gotcha/order: '21'
+  spec:
+    type: ClusterIP
+    selector:
+      app: g-bigcapital-backend
+    ports:
+    - name: app
+      port: 80
+      targetPort: 8000
+      protocol: TCP

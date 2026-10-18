@@ -1,7 +1,8 @@
 // @ts-nocheck
 import axios from 'axios';
 import { store } from '@/store/create-store';
-const http = axios.create();
+import { BASE_PATH } from '@/utils/basePath';
+const http = axios.create({ baseURL: BASE_PATH || undefined });
 
 http.interceptors.request.use(
   (request) => {

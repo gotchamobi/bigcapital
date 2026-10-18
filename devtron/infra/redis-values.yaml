@@ -1,0 +1,26 @@
+# Chart Store app: g-bigcapital-redis (env gotcha). Bitnami redis, standalone.
+# No auth: Bigcapital's queue config has no password setting (QUEUE_HOST/PORT only),
+# and the Service is cluster-internal. Host: g-bigcapital-redis-master.
+fullnameOverride: g-bigcapital-redis
+architecture: standalone
+image:
+  repository: bitnamilegacy/redis
+auth:
+  enabled: false
+master:
+  persistence:
+    enabled: true
+    storageClass: microk8s-hostpath
+    size: 2Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+networkPolicy:
+  enabled: false
+global:
+  security:
+    allowInsecureImages: true

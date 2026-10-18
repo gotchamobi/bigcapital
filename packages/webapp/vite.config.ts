@@ -30,6 +30,7 @@ export default defineConfig(({ mode }) => {
   ];
 
   return {
+    base: env.PUBLIC_URL || '/',
     plugins,
     root: rootDir,
     resolve: {

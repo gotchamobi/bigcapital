@@ -1,4 +1,5 @@
 import { createApiFetcher } from '@bigcapital/sdk-ts';
+import { BASE_PATH } from '@/utils/basePath';
 import axios from 'axios';
 import React from 'react';
 import { getCookie, normalizeApiPath } from '../utils';
@@ -36,7 +37,7 @@ export function useApiFetcher(options?: {
     }
 
     return createApiFetcher({
-      baseUrl: '',
+      baseUrl: BASE_PATH,
       init: { headers },
       disableCamelCaseTransform: !options?.enableCamelCaseTransform,
       onError,
@@ -54,13 +55,13 @@ export function useApiFetcher(options?: {
  * Returns an unauthenticated ApiFetcher for auth flows (signin, signup, reset password, etc.).
  */
 export function useAuthApiFetcher() {
-  return React.useMemo(() => createApiFetcher({ baseUrl: '' }), []);
+  return React.useMemo(() => createApiFetcher({ baseUrl: BASE_PATH }), []);
 }
 
 export function useAuthApiRequest() {
   const http = React.useMemo(() => {
     // Axios instance.
-    return axios.create();
+    return axios.create({ baseURL: BASE_PATH || undefined });
   }, []);
 
   return React.useMemo(

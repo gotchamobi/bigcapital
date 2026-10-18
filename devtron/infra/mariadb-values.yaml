@@ -1,0 +1,28 @@
+# Chart Store app: g-bigcapital-mariadb (env gotcha). Bitnami mariadb.
+# The app connects as root: Bigcapital creates one database per organization at
+# sign-up, so its user needs server-wide CREATE — the compose stack grants the
+# same thing (docker/mariadb/init.sql: ALL PRIVILEGES ON *.*).
+# rootPassword: alphanumeric, generated at deploy time, never committed.
+fullnameOverride: g-bigcapital-mariadb
+image:
+  repository: bitnamilegacy/mariadb
+auth:
+  rootPassword: REPLACE_WITH_GENERATED_PASSWORD
+  database: bigcapital_system
+primary:
+  persistence:
+    enabled: true
+    storageClass: microk8s-hostpath
+    size: 10Gi
+  resources:
+    limits:
+      cpu: '1'
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+networkPolicy:
+  enabled: false
+global:
+  security:
+    allowInsecureImages: true

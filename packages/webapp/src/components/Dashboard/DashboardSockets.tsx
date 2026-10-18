@@ -2,6 +2,7 @@ import { Intent } from '@blueprintjs/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { BASE_PATH } from '@/utils/basePath';
 import { AppToaster, FormattedMessage as T } from '@/components';
 import { workspacesKeys } from '@/ee/workspaces/hooks/query';
 import { AccountsQueryKeys } from '@/hooks/query/accounts';
@@ -12,7 +13,7 @@ export function DashboardSockets() {
   const client = useQueryClient();
 
   useEffect(() => {
-    socket.current = io('/', { path: '/socket' });
+    socket.current = io('/', { path: `${BASE_PATH}/socket` });
 
     socket.current.on('NEW_TRANSACTIONS_DATA', () => {
       client.invalidateQueries({ queryKey: [AccountsQueryKeys.ACCOUNTS] });
