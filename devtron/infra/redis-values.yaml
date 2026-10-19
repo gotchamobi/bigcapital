@@ -1,11 +1,13 @@
 # Chart Store app: g-bigcapital-redis (env gotcha). Bitnami redis, standalone.
 # No auth: Bigcapital's queue config has no password setting (QUEUE_HOST/PORT only),
 # and the Service is cluster-internal. Host: g-bigcapital-redis-master.
+# Tag must match the chart's Redis major: chart 28.x loads Redis 8 modules
+# (redisearch), and a 7.x image crash-loops on startup without them.
 fullnameOverride: g-bigcapital-redis
 architecture: standalone
 image:
   repository: bitnamilegacy/redis
-  tag: '7.4'
+  tag: '8.2'
 auth:
   enabled: false
 master:
