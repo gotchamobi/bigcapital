@@ -87,6 +87,11 @@ EnvVariables:
   value: open-exchange-rate
 - name: CLICKHOUSE_ENABLED
   value: 'false'
+# The server will not boot without a bucket name (multer-s3 checks it at startup).
+# No object store is wired up yet, so attachment uploads fail until real S3
+# credentials and an endpoint are added.
+- name: S3_BUCKET
+  value: bigcapital
 - name: THROTTLE_GLOBAL_TTL
   value: '60000'
 - name: THROTTLE_GLOBAL_LIMIT
